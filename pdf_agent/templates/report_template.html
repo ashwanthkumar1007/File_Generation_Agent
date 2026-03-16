@@ -1,0 +1,54 @@
+{% extends "base.html" %} {% block content %}
+<h1>{{ title }}</h1>
+
+{% for section in sections %} {# ── Heading
+─────────────────────────────────────────────── #} {% if section.type ==
+"heading" %}
+<h2>{{ section.content }}</h2>
+
+{# ── Paragraph ───────────────────────────────────────────── #} {% elif
+section.type == "paragraph" %}
+<p>{{ section.content }}</p>
+
+{# ── Bullet list ─────────────────────────────────────────── #} {% elif
+section.type == "bullet_list" %}
+<ul>
+  {% for item in section.content %}
+  <li>{{ item }}</li>
+  {% endfor %}
+</ul>
+
+{# ── Table ───────────────────────────────────────────────── #} {% elif
+section.type == "table" %}
+<table>
+  <thead>
+    <tr>
+      {% for h in section.content.headers %}
+      <th>{{ h }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in section.content.rows %}
+    <tr>
+      {% for cell in row %}
+      <td>{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{# ── Chart (pre-rendered base64 image) ───────────────────── #} {% elif
+section.type == "chart" %}
+<div class="chart-container">
+  {% if section.content.title %}
+  <div class="chart-title">{{ section.content.title }}</div>
+  {% endif %}
+  <img
+    src="data:image/png;base64,{{ section.content.image_b64 }}"
+    alt="{{ section.content.title or 'chart' }}"
+  />
+</div>
+
+{% endif %} {% endfor %} {% endblock %}

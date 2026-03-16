@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ title }}</title>
+    <style>
+      {% block page_style %}
+      @page {
+        size: {{ page_size }};
+        margin-top: {{ margins.get("top", "2cm") }};
+        margin-bottom: {{ margins.get("bottom", "2cm") }};
+        margin-left: {{ margins.get("left", "2.5cm") }};
+        margin-right: {{ margins.get("right", "2.5cm") }};
+
+        @top-center {
+          content: "{{ header or '' }}";
+          font-size: 9pt;
+          color: #888;
+        }
+        @bottom-center {
+          content: "{{ footer or '' }}";
+          font-size: 9pt;
+          color: #888;
+        }
+        @bottom-right {
+          content: "Page " counter(page) " of " counter(pages);
+          font-size: 8pt;
+          color: #aaa;
+        }
+      }
+      {% endblock %}
+
+      {% block base_style %}
+      * { box-sizing: border-box; }
+
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 11pt;
+        line-height: 1.55;
+        color: #222;
+      }
+
+      h1 {
+        font-size: 22pt;
+        margin: 0 0 0.6em;
+        color: #1a1a2e;
+        border-bottom: 2px solid #4A90D9;
+        padding-bottom: 0.3em;
+      }
+
+      h2 {
+        font-size: 15pt;
+        margin: 1.2em 0 0.4em;
+        color: #16213e;
+      }
+
+      h3 {
+        font-size: 12pt;
+        margin: 1em 0 0.3em;
+        color: #0f3460;
+      }
+
+      p {
+        margin: 0.5em 0;
+        text-align: justify;
+      }
+
+      ul {
+        margin: 0.4em 0 0.8em 1.2em;
+        padding: 0;
+      }
+
+      ul li {
+        margin-bottom: 0.25em;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.8em 0;
+        font-size: 10pt;
+      }
+
+      th, td {
+        border: 1px solid #ccc;
+        padding: 6px 10px;
+        text-align: left;
+      }
+
+      th {
+        background: #4A90D9;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      tr:nth-child(even) td {
+        background: #f5f7fa;
+      }
+
+      .chart-container {
+        text-align: center;
+        margin: 1em 0;
+      }
+
+      .chart-container img {
+        max-width: 100%;
+      }
+
+      .chart-title {
+        font-weight: 600;
+        margin-bottom: 0.3em;
+        color: #333;
+      }
+      {% endblock %}
+    </style>
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+  </body>
+</html>
