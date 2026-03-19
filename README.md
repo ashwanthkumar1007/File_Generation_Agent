@@ -8,12 +8,14 @@ the LLM never produces HTML or PDFs directly — it only generates and edits a s
 
 ### Features
 
-- 🧠 Intent classification — automatically detects create, edit, or chat requests
-- 📄 Structured document generation — headings, paragraphs, bullet lists, tables, and charts
-- ✏️ Iterative editing — refine any part of the document through follow-up prompts
-- 📊 Chart rendering — matplotlib-powered bar, line, pie, and scatter charts embedded as images
-- 💬 General chat — answers questions without triggering PDF generation
-- 🔌 Multi-provider LLM support — Azure AI Foundry, OpenAI, Anthropic Claude, Google Gemini, AWS Bedrock
+- 🧠 **Intent classification** — automatically detects create, edit, or chat requests
+- 🎯 **Smart renderer selection** — LLM-powered selection of the best PDF renderer (WeasyPrint, FPDF2, Borb, Markdown) based on document requirements
+- 📄 **Structured document generation** — headings, paragraphs, bullet lists, tables, and charts
+- ✏️ **Iterative editing** — refine any part of the document through follow-up prompts
+- 📊 **Chart rendering** — matplotlib-powered bar, line, pie, and scatter charts embedded as images
+- 💬 **General chat** — answers questions without triggering PDF generation
+- 🔌 **Multi-provider LLM support** — Azure AI Foundry, OpenAI, Anthropic Claude, Google Gemini, AWS Bedrock
+- 🔄 **Extensible architecture** — easy-to-extend registry pattern for adding new renderers and file formats
 
 ### Stack
 

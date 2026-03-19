@@ -26,6 +26,33 @@ class IntentClassification(BaseModel):
             "'chat' — general question or conversation, no PDF needed."
         ),
     )
+    document_category: Literal[
+        "resume",
+        "cover_letter",
+        "invoice",
+        "contract",
+        "report",
+        "technical_doc",
+        "presentation",
+        "newsletter",
+        "brochure",
+        "letter",
+        "general",
+    ] = Field(
+        default="general",
+        description=(
+            "The category of document the user is requesting. "
+            "Use 'resume' for CVs and résumés; 'cover_letter' for job application letters; "
+            "'invoice' for bills and receipts; 'contract' for legal agreements; "
+            "'report' for analytical or data-heavy documents; "
+            "'technical_doc' for API docs, manuals, specs; "
+            "'presentation' for slide-style decks; "
+            "'newsletter' for news or announcements; "
+            "'brochure' for marketing/promotional docs; "
+            "'letter' for formal correspondence; "
+            "'general' when none of the above fits or intent is not 'create'/'edit'."
+        ),
+    )
 
 
 SYSTEM_PROMPT = SystemMessage(content="""\
@@ -42,6 +69,9 @@ Classify the user's latest message into exactly one of these intents:
 If ambiguous, default to `create` when there is no existing document,
 `edit` when one already exists and the message references it,
 or `chat` when the message is clearly conversational and not document-related.
+
+Also identify the `document_category` — the type of document being requested.
+For chat intents, use 'general'.
 """)
 
 
@@ -62,5 +92,5 @@ def classify_intent(state: PDFAgentState, *, llm: BaseChatModel) -> dict:
         )
 
     result: IntentClassification = structured_llm.invoke(messages)
-    logger.info("Classified intent as '%s'", result.intent)
-    return {"intent": result.intent}
+    logger.info("Classified intent as '%s', document_category='%s'", result.intent, result.document_category)
+    return {"intent": result.intent, "document_category": result.document_category}

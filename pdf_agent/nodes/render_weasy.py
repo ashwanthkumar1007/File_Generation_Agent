@@ -1,6 +1,7 @@
-"""Node: render the current DocumentSpec into a PDF file.
+"""Node: render the current DocumentSpec into a PDF using WeasyPrint (HTML/CSS).
 
 This node is pure Python — no LLM calls are made here.
+Best for: reports, proposals, branded documents, complex layouts.
 """
 
 from __future__ import annotations
@@ -46,8 +47,8 @@ def _prepare_sections(sections: list[Section]) -> list[dict]:
     return prepared
 
 
-def render_pdf(state: PDFAgentState, *, config: AgentConfig) -> dict:
-    """Render the document spec to a PDF and return the file path.
+def render_weasy(state: PDFAgentState, *, config: AgentConfig) -> dict:
+    """Render the document spec to a PDF using WeasyPrint (HTML/CSS pipeline).
 
     Steps:
         1. Validate and parse the spec.

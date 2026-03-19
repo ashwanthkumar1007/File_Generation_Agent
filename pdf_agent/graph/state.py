@@ -12,6 +12,8 @@ class PDFAgentState(TypedDict):
 
     messages: list[BaseMessage]
     intent: str
+    renderer: str | None
+    document_category: str | None
     document_spec: dict | None
     pdf_path: str | None
     chat_response: str | None
