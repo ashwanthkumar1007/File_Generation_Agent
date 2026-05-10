@@ -39,7 +39,7 @@ class AgentConfig(BaseSettings):
         "azure", validation_alias="PDF_AGENT_LLM_PROVIDER"
     )
     model_name: str = Field(
-        "gpt-5", validation_alias="PDF_AGENT_MODEL"
+        "gpt-4o", validation_alias="PDF_AGENT_MODEL"
     )
     temperature: float = 1.0
 

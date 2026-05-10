@@ -11,9 +11,10 @@ from pdf_agent.graph.state import PDFAgentState
 from pdf_agent.nodes.select_renderer import select_renderer
 from pdf_agent.nodes.classify_intent import classify_intent
 # Import your renderer implementations
-# from pdf_agent.nodes.render_with_weasyprint import render_with_weasyprint
-# from pdf_agent.nodes.render_with_fpdf2 import render_with_fpdf2
-# etc.
+# from pdf_agent.nodes.render_weasy import render_weasy
+# from pdf_agent.nodes.render_fpdf2 import render_fpdf2
+# from pdf_agent.nodes.render_borb import render_borb
+# from pdf_agent.nodes.render_markdown import render_markdown
 
 
 def build_graph(llm):
@@ -30,7 +31,7 @@ def build_graph(llm):
     workflow.add_node("generate_content", lambda state: generate_content(state, llm))
     
     # Add renderer-specific nodes
-    workflow.add_node("render_weasyprint", render_with_weasyprint)
+    workflow.add_node("render_weasy", render_with_weasyprint)
     workflow.add_node("render_fpdf2", render_with_fpdf2)
     workflow.add_node("render_borb", render_with_borb)
     workflow.add_node("render_markdown", render_with_markdown)
@@ -44,7 +45,7 @@ def build_graph(llm):
     def route_by_intent(state: PDFAgentState) -> str:
         """Route based on classified intent."""
         intent = state["intent"]
-        if intent in ("generate", "edit"):
+        if intent in ("create", "edit"):
             return "select_renderer"
         return "chat_response"
     
@@ -54,7 +55,7 @@ def build_graph(llm):
         
         # Map renderer names to node names
         renderer_map = {
-            "weasyprint": "render_weasyprint",
+            "weasyprint": "render_weasy",
             "fpdf2": "render_fpdf2",
             "borb": "render_borb",
             "markdown": "render_markdown",
@@ -81,24 +82,24 @@ def build_graph(llm):
             "chat_response": "chat_response"
         }
     )
-    
+
     # After selecting renderer, generate content
     workflow.add_edge("select_renderer", "generate_content")
-    
+
     # After generating content, route to appropriate renderer
     workflow.add_conditional_edges(
         "generate_content",
         route_by_renderer,
         {
-            "render_weasyprint": "render_weasyprint",
+            "render_weasy": "render_weasy",
             "render_fpdf2": "render_fpdf2",
             "render_borb": "render_borb",
             "render_markdown": "render_markdown",
         }
     )
-    
+
     # All renderers end the workflow
-    workflow.add_edge("render_weasyprint", END)
+    workflow.add_edge("render_weasy", END)
     workflow.add_edge("render_fpdf2", END)
     workflow.add_edge("render_borb", END)
     workflow.add_edge("render_markdown", END)

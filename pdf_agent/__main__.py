@@ -1,5 +1,5 @@
 """Allow running the package with ``python -m pdf_agent``."""
 
-from pdf_agent.main import run_cli
+import uvicorn
 
-run_cli()
+uvicorn.run("pdf_agent.main:app", host="0.0.0.0", port=8001, reload=True)

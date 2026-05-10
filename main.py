@@ -1,6 +1,6 @@
-"""Root entry point — delegates to the pdf_agent CLI."""
+"""Root entry point — starts the FastAPI server."""
 
-from pdf_agent.main import run_cli
+import uvicorn
 
 if __name__ == "__main__":
-    run_cli()
+    uvicorn.run("pdf_agent.main:app", host="0.0.0.0", port=8001, reload=True)

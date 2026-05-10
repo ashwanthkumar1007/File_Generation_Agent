@@ -11,14 +11,23 @@ dependencies = [
     "langchain-openai>=1.1.11",
     "langgraph>=1.1.2",
     "matplotlib>=3.10.8",
-    "pandas>=3.0.1",
-    "plotly>=6.6.0",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.13.1",
     "weasyprint>=68.1",
     # Renderer-specific dependencies
     "fpdf2>=2.8.3",
-    "borb>=2.1.25",
+    "borb==2.1.25",
     "markdown>=3.7",
+    "pygments>=2.18.0",
     "Pillow>=10.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+]
+
+[project.optional-dependencies]
+gemini = ["langchain-google-genai>=2.0.0"]
+bedrock = ["langchain-aws>=0.2.0"]
+all = [
+    "langchain-google-genai>=2.0.0",
+    "langchain-aws>=0.2.0",
 ]

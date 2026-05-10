@@ -1,30 +1,31 @@
-#!/usr/bin/env python3
-"""PDF Agent — conversational CLI for AI-powered document generation.
+"""PDF Agent — FastAPI application for AI-powered document generation.
 
 Usage:
-    python -m pdf_agent.main
+    uvicorn pdf_agent.main:app --host 0.0.0.0 --port 8001 --reload
 
 Environment variables:
-    OPENAI_API_KEY           – required when using the OpenAI provider (default)
-    ANTHROPIC_API_KEY        – required when using the Anthropic provider
-    PDF_AGENT_LLM_PROVIDER   – "azure" (default), "openai", "anthropic", "gemini", "bedrock"
-    PDF_AGENT_MODEL           – model name override (default: gpt-4o)
-    AZURE_OPENAI_ENDPOINT     – required for azure provider
-    AZURE_OPENAI_DEPLOYMENT   – required for azure provider
-    AZURE_OPENAI_API_KEY      – required for azure provider
-    AZURE_OPENAI_API_VERSION  – optional (default: 2024-12-01-preview)
+    OPENAI_API_KEY           - required when using the OpenAI provider
+    ANTHROPIC_API_KEY        - required when using the Anthropic provider
+    PDF_AGENT_LLM_PROVIDER   - "azure" (default), "openai", "anthropic", "gemini", "bedrock"
+    PDF_AGENT_MODEL          - model name override (default: gpt-4o)
+    AZURE_OPENAI_ENDPOINT    - required for azure provider
+    AZURE_OPENAI_DEPLOYMENT  - required for azure provider
+    AZURE_OPENAI_API_KEY     - required for azure provider
+    AZURE_OPENAI_API_VERSION - optional (default: 2024-12-01-preview)
 """
 
 from __future__ import annotations
 
-import sys
+from contextlib import asynccontextmanager
 
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import HumanMessage
 
 from pdf_agent.config import AgentConfig, get_config
 from pdf_agent.graph.pdf_agent_graph import build_graph
-from pdf_agent.graph.state import PDFAgentState
+from pdf_agent.routes import router
 
 
 def _create_llm(config: AgentConfig) -> BaseChatModel:
@@ -32,13 +33,13 @@ def _create_llm(config: AgentConfig) -> BaseChatModel:
 
     Supported providers
     -------------------
-    openai    : OpenAI ChatGPT models (default)
+    openai    : OpenAI ChatGPT models
                 Env: OPENAI_API_KEY
     anthropic : Anthropic Claude models
                 Env: ANTHROPIC_API_KEY
     gemini    : Google Gemini via langchain-google-genai
                 Env: GOOGLE_API_KEY
-    azure     : Azure AI Foundry / Azure OpenAI
+    azure     : Azure AI Foundry / Azure OpenAI (default)
                 Env: AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT,
                      AZURE_OPENAI_DEPLOYMENT, AZURE_OPENAI_API_VERSION
     bedrock   : AWS Bedrock via langchain-aws
@@ -83,9 +84,9 @@ def _create_llm(config: AgentConfig) -> BaseChatModel:
             model_kwargs={"temperature": config.temperature},
         )
 
-    # Explicit OpenAI or unknown provider — fall back to OpenAI with a warning
     if provider != "openai":
         import warnings
+
         warnings.warn(
             f"Unknown llm_provider '{config.llm_provider}', falling back to 'openai'.",
             stacklevel=2,
@@ -98,63 +99,30 @@ def _create_llm(config: AgentConfig) -> BaseChatModel:
     )
 
 
-def run_cli() -> None:
-    """Run the interactive CLI loop."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     config = get_config()
+    config.ensure_output_dir()
     llm = _create_llm(config)
     graph = build_graph(llm, config)
 
-    # Persistent state across turns
-    state: PDFAgentState = {
-        "messages": [],
-        "intent": "",
-        "document_spec": None,
-        "pdf_path": None,
-        "chat_response": None,
-        "error": None,
-    }
+    app.state.graph = graph
+    app.state.agent_config = config
+    yield
 
-    print("=== PDF Generation Agent ===")
-    print("Type your request (or 'quit' to exit).\n")
 
-    while True:
-        try:
-            user_input = input("You: ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\nGoodbye!")
-            break
+app = FastAPI(title="File Generation Agent API", lifespan=lifespan)
 
-        if not user_input:
-            continue
-        if user_input.lower() in {"quit", "exit", "q"}:
-            print("Goodbye!")
-            break
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-        # Append the new user message
-        state["messages"] = [*state["messages"], HumanMessage(content=user_input)]
-
-        # Run the graph
-        result = graph.invoke(state)
-
-        # Merge result back into persistent state
-        state["document_spec"] = result.get("document_spec", state["document_spec"])
-        state["pdf_path"] = result.get("pdf_path", state["pdf_path"])
-        state["chat_response"] = result.get("chat_response")
-        state["messages"] = result.get("messages", state["messages"])
-        state["error"] = result.get("error")
-        intent = result.get("intent", "")
-
-        # Display outcome
-        if state["error"]:
-            print(f"\n⚠  Error: {state['error']}\n")
-        elif intent == "chat":
-            # Response was already streamed token-by-token inside the node
-            pass
-        elif state["pdf_path"] and intent in ("create", "edit"):
-            print(f"\n✅ PDF generated at: {state['pdf_path']}\n")
-        else:
-            print("\n(no output produced)\n")
+app.include_router(router)
 
 
 if __name__ == "__main__":
-    run_cli()
+    uvicorn.run("pdf_agent.main:app", host="0.0.0.0", port=8001, reload=True)
